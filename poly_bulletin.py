@@ -6,13 +6,13 @@ from datetime import date
 from selenium.webdriver.common.by import By
 from selenium import webdriver
 from taste_the_rainbow import *
+from selenium.common.exceptions import NoSuchElementException
 
 import aspose.words as aw
 import shutil
 import time
 import os
 import configparser
-
 
 
 CATEGORY = "Poly_Bulletin"
@@ -43,7 +43,7 @@ def get_login_info() -> None:
 
 
 def get_bulletin() -> None:
-    url = '''https://dossieretudiant.polymtl.ca/WebEtudiant7/ValidationServlet'''
+    url = '''https://dossieretudiant.polymtl.ca/WebEtudiant7/poly.html'''
 
     options = webdriver.ChromeOptions()
     options.headless = True
@@ -194,7 +194,7 @@ def init() -> None:
 def check_final_grades() -> None:
     get_bulletin()
     diffrent = compare_pdfs(r"Bulletin\old.pdf", r"Bulletin\new.pdf")
-    if True:
+    if diffrent:
         os.rename(
             BULLETIN_PATH + r"\new.pdf", BULLETIN_PATH + r"\bulletin.pdf")
         send()
@@ -221,8 +221,10 @@ def main_loop() -> None:
             # Wait 15 min
             print_sleeping(CATEGORY, f"Waiting for final grades...")
             time.sleep(900)
+    except NoSuchElementException:
+        print_failure(CATEGORY, "Incorrect login information!!!")
     except Exception as e:
-        print_warning(CATEGORY, e.__str__())
+        print_failure(CATEGORY, e.__str__())
 
     return
 

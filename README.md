@@ -21,7 +21,7 @@ Changes will be sent to you via email.
 
 The program will check for final grades every 15 minutes (can be changed in the `main loop` function in `poly_bulletin.py`) and sleep the rest of the time.
 
-Email will be sent form horde to any email of your choosing
+Email will be sent form horde to any email of your choosing.
 
 ## **Email Preview**
 
