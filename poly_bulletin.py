@@ -171,19 +171,28 @@ def send() -> None:
     return
 
 ############################################################################################################
-#                                     Initialization of old Pdf                                            #
+#                           Initialization of old Pdf if it doesn't exist                                  #
 ############################################################################################################
 
 
 def init() -> None:
-    if os.path.exists(BULLETIN_PATH):
-        shutil.rmtree(BULLETIN_PATH, ignore_errors=True)
-
-    os.mkdir(BULLETIN_PATH)
+    if not(os.path.exists(BULLETIN_PATH)):
+        os.mkdir(BULLETIN_PATH)
+    elif len(os.listdir(BULLETIN_PATH)) > 1:
+        files = os.listdir(BULLETIN_PATH)
+        for file in files:
+            if file != "old.pdf":
+                os.remove(BULLETIN_PATH + f"\{file}")
+        return
+    elif os.listdir(BULLETIN_PATH)[0] != "old.pdf":
+        os.remove(BULLETIN_PATH + f"/{os.listdir(BULLETIN_PATH)[0]}")
+    else:
+        return
+    
     get_bulletin()
     os.rename(BULLETIN_PATH +
               f"\\{os.listdir(BULLETIN_PATH)[0]}", BULLETIN_PATH + r"\old.pdf")
-
+        
     return
 
 ############################################################################################################
