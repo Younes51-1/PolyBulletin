@@ -98,7 +98,7 @@ def compare_pdfs(fileName1: str, fileName2: str) -> bool:
     PDF2.save(BULLETIN_PATH + r"\new.docx", aw.SaveFormat.DOCX)
 
     DOC1 = aw.Document(BULLETIN_PATH + r"\old.docx")
-    DOC2 = aw.Document(BULLETIN_PATH + r"\old.docx")
+    DOC2 = aw.Document(BULLETIN_PATH + r"\new.docx")
 
     options = aw.comparing.CompareOptions()
     options.ignore_formatting = True
@@ -182,7 +182,7 @@ def init() -> None:
         files = os.listdir(BULLETIN_PATH)
         for file in files:
             if file != "old.pdf":
-                os.remove(BULLETIN_PATH + f"\{file}")
+                os.remove(BULLETIN_PATH + f"\\{file}")
         return
     elif os.listdir(BULLETIN_PATH)[0] != "old.pdf":
         os.remove(BULLETIN_PATH + f"/{os.listdir(BULLETIN_PATH)[0]}")
