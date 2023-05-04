@@ -42,7 +42,6 @@ def get_login_info() -> None:
 def get_bulletin() -> None:
     url = '''https://dossieretudiant.polymtl.ca/WebEtudiant7/poly.html'''
     options = webdriver.ChromeOptions()
-    options.headless = True
     options.add_argument("--log-level=3")  # delete in case of error
     options.add_experimental_option(
         'excludeSwitches', ['enable-logging'])  # disable DevTools logging
@@ -68,7 +67,7 @@ def get_bulletin() -> None:
     login_btn = driver.find_element(
         By.XPATH, '/html/body/div[2]/div[2]/form/div[4]/input')
     login_btn.click()
-
+    
     time.sleep(10)
 
     bulletin_btn = driver.find_element(By.NAME, "btnBulCumul")
@@ -124,7 +123,6 @@ def send() -> None:
     url = '''https://www.imp.polymtl.ca/login.php'''
     path = BULLETIN_PATH + r"\\bulletin.pdf"
     options = webdriver.ChromeOptions()
-    options.headless = True
     options.add_experimental_option(
         'excludeSwitches', ['enable-logging'])  # disable DevTools logging
     options.add_argument("--log-level=3")  # delete in case of error
