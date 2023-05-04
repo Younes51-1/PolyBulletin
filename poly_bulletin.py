@@ -7,29 +7,26 @@ from selenium.webdriver.common.by import By
 from selenium import webdriver
 from taste_the_rainbow import *
 from selenium.common.exceptions import NoSuchElementException
-
 import aspose.words as aw
 import shutil
 import time
 import os
 import configparser
 
-
 CATEGORY = "Poly_Bulletin"
 CONFIG_LOC = 'Login.cfg'
 BULLETIN_PATH = os.path.dirname(os.path.abspath(__file__)) + r"\Bulletin"
 
 ############################################################################################################
+
 #                                     Get Login credentials                                                #
 ############################################################################################################
-
 
 def get_config(section: str, values: list[str]) -> list[str]:
     assert os.path.exists(CONFIG_LOC), "Missing login info file"
     config = configparser.ConfigParser()
     config.read(CONFIG_LOC)
     return [config.get(section, x) for x in values]
-
 
 def get_login_info() -> None:
     global CODE, NIP, NAISSANCE, EMAIL
@@ -38,13 +35,12 @@ def get_login_info() -> None:
     return
 
 ############################################################################################################
+
 #                                     Log to DOSSIER ETUDIANT and download Bulletin                        #
 ############################################################################################################
 
-
 def get_bulletin() -> None:
     url = '''https://dossieretudiant.polymtl.ca/WebEtudiant7/poly.html'''
-
     options = webdriver.ChromeOptions()
     options.headless = True
     options.add_argument("--log-level=3")  # delete in case of error
@@ -73,6 +69,8 @@ def get_bulletin() -> None:
         By.XPATH, '/html/body/div[2]/div[2]/form/div[4]/input')
     login_btn.click()
 
+    time.sleep(10)
+
     bulletin_btn = driver.find_element(By.NAME, "btnBulCumul")
     bulletin_btn.click()
 
@@ -81,14 +79,14 @@ def get_bulletin() -> None:
     driver.close()
 
     os.rename(BULLETIN_PATH +
-              f"\\{os.listdir(BULLETIN_PATH)[0]}", BULLETIN_PATH + r"\new.pdf")
+            f"\\{os.listdir(BULLETIN_PATH)[0]}", BULLETIN_PATH + r"\new.pdf")
 
     return
 
 ############################################################################################################
+
 #                                     Compare Pdfs                                                         #
 ############################################################################################################
-
 
 def compare_pdfs(fileName1: str, fileName2: str) -> bool:
     PDF1 = aw.Document(fileName1)
@@ -118,14 +116,13 @@ def compare_pdfs(fileName1: str, fileName2: str) -> bool:
     return DOC1.revisions.count > 0
 
 ############################################################################################################
+
 #                                     Send Email in case of an update                                      #
 ############################################################################################################
-
 
 def send() -> None:
     url = '''https://www.imp.polymtl.ca/login.php'''
     path = BULLETIN_PATH + r"\\bulletin.pdf"
-
     options = webdriver.ChromeOptions()
     options.headless = True
     options.add_experimental_option(
@@ -152,6 +149,7 @@ def send() -> None:
     email_input = driver.find_element(
         By.XPATH, "/html/body/div[3]/form/div[2]/div[1]/table/tbody/tr[1]/td[2]/div/ul/li/input")
     email_input.send_keys(EMAIL)
+
     subject_input = driver.find_element(By.ID, "subject")
     subject_input.send_keys("Bulletin Update")
 
@@ -161,28 +159,31 @@ def send() -> None:
     text_input = driver.find_element(By.ID, "composeMessage")
     text_input.send_keys(
         '''Hello,\nYou will find your bulletin attached down below.''')
-
+    
     time.sleep(10)
 
     send_btn = driver.find_element(By.ID, "send_button")
     send_btn.click()
-
+    
     driver.close()
+    
     return
 
 ############################################################################################################
+
 #                           Initialization of old Pdf if it doesn't exist                                  #
 ############################################################################################################
-
 
 def init() -> None:
     if not(os.path.exists(BULLETIN_PATH)):
         os.mkdir(BULLETIN_PATH)
     elif len(os.listdir(BULLETIN_PATH)) > 1:
         files = os.listdir(BULLETIN_PATH)
+        
         for file in files:
             if file != "old.pdf":
                 os.remove(BULLETIN_PATH + f"\\{file}")
+                
         return
     elif os.listdir(BULLETIN_PATH)[0] != "old.pdf":
         os.remove(BULLETIN_PATH + f"/{os.listdir(BULLETIN_PATH)[0]}")
@@ -191,19 +192,19 @@ def init() -> None:
     
     get_bulletin()
     os.rename(BULLETIN_PATH +
-              f"\\{os.listdir(BULLETIN_PATH)[0]}", BULLETIN_PATH + r"\old.pdf")
-        
+            f"\\{os.listdir(BULLETIN_PATH)[0]}", BULLETIN_PATH + r"\old.pdf")
+
     return
 
 ############################################################################################################
+
 #                                    Main functions                                                        #
 ############################################################################################################
 
-
 def check_final_grades() -> None:
     get_bulletin()
-    diffrent = compare_pdfs(r"Bulletin\old.pdf", r"Bulletin\new.pdf")
-    if diffrent:
+    different = compare_pdfs(r"Bulletin\old.pdf", r"Bulletin\new.pdf")
+    if different:
         os.rename(
             BULLETIN_PATH + r"\new.pdf", BULLETIN_PATH + r"\bulletin.pdf")
         send()
@@ -216,7 +217,6 @@ def check_final_grades() -> None:
         print_no_change(CATEGORY, f"No update")
 
     return
-
 
 def main_loop() -> None:
     try:
@@ -239,7 +239,6 @@ def main_loop() -> None:
 
 ############################################################################################################
 ############################################################################################################
-
 
 if __name__ == '__main__':
     main_loop()
