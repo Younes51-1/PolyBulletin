@@ -3,15 +3,18 @@ __doc__ = 'Check the Polytechnique Montreal student dossier on a regular basis f
 __author__ = 'BENABBOU, Younes.'
 
 from datetime import date
-from selenium.webdriver.common.by import By
-from selenium import webdriver
-from taste_the_rainbow import *
-from selenium.common.exceptions import NoSuchElementException
-import aspose.words as aw
 import shutil
 import time
 import os
 import configparser
+
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.common.exceptions import NoSuchElementException
+
+from taste_the_rainbow import *
 
 CATEGORY = "Poly_Bulletin"
 CONFIG_LOC = 'Login.cfg'
@@ -52,7 +55,7 @@ def get_bulletin() -> None:
         "plugins.always_open_pdf_externally": True
     })
 
-    driver = webdriver.Chrome(options=options, service_log_path=None)
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options, service_log_path=None)
     driver.get(url)
 
     code_input = driver.find_element(By.ID, "code")
@@ -88,31 +91,7 @@ def get_bulletin() -> None:
 ############################################################################################################
 
 def compare_pdfs(fileName1: str, fileName2: str) -> bool:
-    PDF1 = aw.Document(fileName1)
-    PDF2 = aw.Document(fileName2)
-
-    PDF1.save(BULLETIN_PATH + r"\old.docx", aw.SaveFormat.DOCX)
-    PDF2.save(BULLETIN_PATH + r"\new.docx", aw.SaveFormat.DOCX)
-
-    DOC1 = aw.Document(BULLETIN_PATH + r"\old.docx")
-    DOC2 = aw.Document(BULLETIN_PATH + r"\new.docx")
-
-    options = aw.comparing.CompareOptions()
-    options.ignore_formatting = True
-    options.ignore_headers_and_footers = True
-    options.ignore_case_changes = True
-    options.ignore_tables = True
-    options.ignore_fields = True
-    options.ignore_comments = True
-    options.ignore_textboxes = True
-    options.ignore_footnotes = True
-
-    DOC1.compare(DOC2, "user", date.today(), options)
-
-    os.remove(r"Bulletin\old.docx")
-    os.remove(r"Bulletin\new.docx")
-
-    return DOC1.revisions.count > 0
+    return os.path.getsize(fileName1) != os.path.getsize(fileName2)
 
 ############################################################################################################
 
@@ -127,7 +106,7 @@ def send() -> None:
         'excludeSwitches', ['enable-logging'])  # disable DevTools logging
     options.add_argument("--log-level=3")  # delete in case of error
 
-    driver = webdriver.Chrome(options=options)
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
     driver.get(url)
 
     user_input = driver.find_element(By.ID, "horde_user")
