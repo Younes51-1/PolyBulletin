@@ -2,11 +2,12 @@ __title__ = 'poly_bulletin.py'
 __doc__ = 'Check the Polytechnique Montreal student dossier on a regular basis for changes in final grades.'
 __author__ = 'BENABBOU, Younes.'
 
-from datetime import date
-import shutil
+import aspose.words as aw
 import time
 import os
 import configparser
+from datetime import date
+from taste_the_rainbow import *
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -14,11 +15,11 @@ from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.common.exceptions import NoSuchElementException
 
-from taste_the_rainbow import *
 
 CATEGORY = "Poly_Bulletin"
 CONFIG_LOC = 'Login.cfg'
 BULLETIN_PATH = os.path.dirname(os.path.abspath(__file__)) + r"\Bulletin"
+
 
 ############################################################################################################
 
@@ -45,6 +46,7 @@ def get_login_info() -> None:
 def get_bulletin() -> None:
     url = '''https://dossieretudiant.polymtl.ca/WebEtudiant7/poly.html'''
     options = webdriver.ChromeOptions()
+    options.headless = True
     options.add_argument("--log-level=3")  # delete in case of error
     options.add_experimental_option(
         'excludeSwitches', ['enable-logging'])  # disable DevTools logging
@@ -91,7 +93,25 @@ def get_bulletin() -> None:
 ############################################################################################################
 
 def compare_pdfs(fileName1: str, fileName2: str) -> bool:
-    return os.path.getsize(fileName1) != os.path.getsize(fileName2)
+    pdf1 = aw.Document(fileName1)
+    pdf2 = aw.Document(fileName2)
+
+    pdf1.accept_all_revisions()
+    pdf2.accept_all_revisions()
+
+    options = aw.comparing.CompareOptions()
+    options.ignore_formatting = True
+    options.ignore_headers_and_footers = True
+    options.ignore_case_changes = True
+    options.ignore_tables = True
+    options.ignore_fields = True
+    options.ignore_comments = True
+    options.ignore_textboxes = True
+    options.ignore_footnotes = True
+
+    pdf1.compare(pdf2, "user", date.today(), options)
+
+    return pdf1.revisions.count > 0
 
 ############################################################################################################
 
@@ -102,6 +122,7 @@ def send() -> None:
     url = '''https://www.imp.polymtl.ca/login.php'''
     path = BULLETIN_PATH + r"\\bulletin.pdf"
     options = webdriver.ChromeOptions()
+    options.headless = True
     options.add_experimental_option(
         'excludeSwitches', ['enable-logging'])  # disable DevTools logging
     options.add_argument("--log-level=3")  # delete in case of error
@@ -136,14 +157,16 @@ def send() -> None:
     text_input = driver.find_element(By.ID, "composeMessage")
     text_input.send_keys(
         '''Hello,\nYou will find your bulletin attached down below.''')
-    
+
     time.sleep(10)
 
     send_btn = driver.find_element(By.ID, "send_button")
     send_btn.click()
-    
+
+    time.sleep(10)
+
     driver.close()
-    
+
     return
 
 ############################################################################################################
@@ -187,7 +210,7 @@ def check_final_grades() -> None:
         send()
         os.remove(r"Bulletin\old.pdf")
         os.rename(
-            BULLETIN_PATH + f"\\{os.listdir(BULLETIN_PATH)[0]}", BULLETIN_PATH + r"\old.pdf")
+                BULLETIN_PATH + f"\\{os.listdir(BULLETIN_PATH)[0]}", BULLETIN_PATH + r"\old.pdf")
         print_success(CATEGORY, f"UPDATE SENT to {EMAIL}")
     else:
         os.remove(r"Bulletin\new.pdf")
